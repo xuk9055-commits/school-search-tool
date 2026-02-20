@@ -385,7 +385,8 @@
                 alert('请输入学校名称');
                 return;
             }
-            const query = encodeURIComponent(schoolName + ' TOEFL requirements international students admission');
+            // 使用精准搜索词，优先搜索学校官网的语言要求页面
+            const query = encodeURIComponent(schoolName + ' English language proficiency requirements international students admission site:.edu');
             window.open(`https://www.google.com/search?q=${query}`, '_blank');
         }
         
