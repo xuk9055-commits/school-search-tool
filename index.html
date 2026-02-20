@@ -166,6 +166,7 @@
         .accepted { color: #4caf50; }
         .rejected { color: #f44336; }
         .warning { color: #ff9800; }
+        .unknown { color: #9e9e9e; }
         .policy-box {
             background: #fff8e1;
             border-left: 4px solid #ffc107;
@@ -173,7 +174,17 @@
             margin: 15px 0;
             border-radius: 0 8px 8px 0;
         }
+        .policy-box.info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        .policy-box.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
         .policy-label { font-size: 12px; color: #f57c00; font-weight: bold; margin-bottom: 5px; }
+        .policy-box.info .policy-label { color: #1976d2; }
+        .policy-box.warning .policy-label { color: #e65100; }
         .policy-text { font-size: 14px; color: #333; line-height: 1.6; }
         .official-link {
             display: inline-flex;
@@ -199,6 +210,65 @@
         .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: #666; }
         .empty-state p { font-size: 14px; }
         .highlight { background: linear-gradient(120deg, #ffe082 0%, #ffe082 100%); background-repeat: no-repeat; background-size: 100% 40%; background-position: 0 88%; padding: 0 4px; }
+        
+        /* 未找到学校卡片样式 */
+        .not-found-card {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+            border: 2px dashed #f44336;
+        }
+        .not-found-card::before {
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+        }
+        .custom-search-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+        }
+        .custom-search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .custom-search-input:focus {
+            border-color: #667eea;
+        }
+        .search-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .search-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .search-btn.google {
+            background: #4285f4;
+            color: white;
+        }
+        .search-btn.google:hover {
+            background: #3367d6;
+        }
+        .search-btn.bing {
+            background: #00809d;
+            color: white;
+        }
+        .search-btn.bing:hover {
+            background: #006a82;
+        }
+        
         @media (max-width: 768px) {
             .header h1 { font-size: 22px; }
             .search-input { font-size: 16px; padding: 15px 20px 15px 50px; }
@@ -206,6 +276,8 @@
             .acceptance-grid { grid-template-columns: 1fr; }
             .stats { gap: 20px; }
             .stat-number { font-size: 24px; }
+            .search-btns { flex-direction: column; }
+            .search-btn { width: 100%; }
         }
     </style>
 </head>
@@ -247,6 +319,7 @@
         };
         
         let currentFilter = 'all';
+        let currentKeyword = '';
         
         function filterByCountry(country) {
             currentFilter = country;
@@ -256,13 +329,7 @@
                     btn.classList.add('active');
                 }
             });
-            
-            if (country === 'all') {
-                displayResults(schoolsData, '');
-            } else {
-                const filtered = schoolsData.filter(s => s['国家'] === country);
-                displayResults(filtered, '');
-            }
+            performSearch();
         }
         
         function highlightText(text, keyword) {
@@ -271,15 +338,85 @@
             return text.replace(regex, '<span class="highlight">$1</span>');
         }
         
+        function showNotFoundCard(keyword) {
+            return `
+                <div class="school-card not-found-card">
+                    <div class="school-header">
+                        <div class="school-name">❓ "${keyword}" 未在数据库中</div>
+                    </div>
+                    <div class="acceptance-grid">
+                        <div class="acceptance-item">
+                            <div class="acceptance-label">本科认可度</div>
+                            <div class="acceptance-value unknown">⚠️ 待定</div>
+                        </div>
+                        <div class="acceptance-item">
+                            <div class="acceptance-label">硕士认可度</div>
+                            <div class="acceptance-value unknown">⚠️ 待定</div>
+                        </div>
+                    </div>
+                    <div class="policy-box warning">
+                        <div class="policy-label">⚠️ 重要提示</div>
+                        <div class="policy-text">
+                            该学校不在我们的数据库中（共收录154所热门院校）。<br>
+                            <strong>建议：</strong>点击下方搜索按钮，直接查看学校官网的语言要求政策。
+                        </div>
+                    </div>
+                    <div class="custom-search-box">
+                        <div class="policy-label" style="margin-bottom: 10px;">🔍 快速查询学校官网</div>
+                        <input type="text" class="custom-search-input" id="customSchoolName" 
+                            placeholder="输入学校完整英文名称，如：University of Sydney" 
+                            value="${keyword}">
+                        <div class="search-btns">
+                            <button class="search-btn google" onclick="searchGoogle()">
+                                🔍 Google搜索
+                            </button>
+                            <button class="search-btn bing" onclick="searchBing()">
+                                🔍 Bing搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function searchGoogle() {
+            const schoolName = document.getElementById('customSchoolName').value.trim();
+            if (!schoolName) {
+                alert('请输入学校名称');
+                return;
+            }
+            const query = encodeURIComponent(schoolName + ' TOEFL requirements international students admission');
+            window.open(`https://www.google.com/search?q=${query}`, '_blank');
+        }
+        
+        function searchBing() {
+            const schoolName = document.getElementById('customSchoolName').value.trim();
+            if (!schoolName) {
+                alert('请输入学校名称');
+                return;
+            }
+            const query = encodeURIComponent(schoolName + ' TOEFL requirements international students');
+            window.open(`https://www.bing.com/search?q=${query}`, '_blank');
+        }
+        
         function displayResults(results, keyword) {
             const resultsDiv = document.getElementById('results');
+            
+            if (results.length === 0 && keyword) {
+                // 显示未找到卡片
+                resultsDiv.innerHTML = `
+                    <div class="result-count">未找到 "${keyword}" 相关学校</div>
+                    ${showNotFoundCard(keyword)}
+                `;
+                return;
+            }
             
             if (results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">😕</div>
-                        <h3>未找到相关学校</h3>
-                        <p>请尝试其他关键词</p>
+                        <div class="empty-state-icon">🎓</div>
+                        <h3>开始搜索</h3>
+                        <p>输入学校名称或选择国家查看列表</p>
                     </div>
                 `;
                 return;
@@ -324,9 +461,8 @@
             resultsDiv.innerHTML = html;
         }
         
-        // 搜索功能
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const keyword = e.target.value.trim().toLowerCase();
+        function performSearch() {
+            const keyword = currentKeyword.toLowerCase();
             
             let filtered = schoolsData;
             
@@ -345,10 +481,16 @@
             }
             
             displayResults(filtered, keyword);
+        }
+        
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            currentKeyword = e.target.value.trim();
+            performSearch();
         });
         
         // 初始显示全部
-        displayResults(schoolsData, '');
+        filterByCountry('all');
     </script>
 </body>
 </html>
