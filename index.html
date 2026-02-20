@@ -347,11 +347,11 @@
                     <div class="acceptance-grid">
                         <div class="acceptance-item">
                             <div class="acceptance-label">本科认可度</div>
-                            <div class="acceptance-value unknown">⚠️ 待定</div>
+                            <div class="acceptance-value unknown">⚠️ 不一定认可</div>
                         </div>
                         <div class="acceptance-item">
                             <div class="acceptance-label">硕士认可度</div>
-                            <div class="acceptance-value unknown">⚠️ 待定</div>
+                            <div class="acceptance-value unknown">⚠️ 不一定认可</div>
                         </div>
                     </div>
                     <div class="policy-box warning">
@@ -370,8 +370,8 @@
                             <button class="search-btn google" onclick="searchGoogle()">
                                 🔍 Google搜索
                             </button>
-                            <button class="search-btn bing" onclick="searchBing()">
-                                🔍 Bing搜索
+                            <button class="search-btn bing" onclick="searchBaidu()">
+                                🔍 百度搜索
                             </button>
                         </div>
                     </div>
@@ -389,14 +389,14 @@
             window.open(`https://www.google.com/search?q=${query}`, '_blank');
         }
         
-        function searchBing() {
+        function searchBaidu() {
             const schoolName = document.getElementById('customSchoolName').value.trim();
             if (!schoolName) {
                 alert('请输入学校名称');
                 return;
             }
             const query = encodeURIComponent(schoolName + ' TOEFL requirements international students');
-            window.open(`https://www.bing.com/search?q=${query}`, '_blank');
+            window.open(`https://www.baidu.com/s?q=${query}`, '_blank');
         }
         
         function displayResults(results, keyword) {
