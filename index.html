@@ -350,18 +350,7 @@
             return text.replace(regex, '<span class="highlight">$1</span>');
         }
         
-        // 自动跳转到 Google 搜索学校官网
-        function autoSearchGoogle(schoolName) {
-            const query = encodeURIComponent(schoolName + ' English language proficiency requirements international students admission site:.edu OR site:.ac.uk');
-            window.open(`https://www.google.com/search?q=${query}`, '_blank');
-        }
-
         function showNotFoundCard(keyword) {
-            // 自动执行 Google 搜索
-            setTimeout(() => {
-                autoSearchGoogle(keyword);
-            }, 500);
-            
             return `
                 <div class="school-card not-found-card">
                     <div class="school-header">
@@ -381,7 +370,7 @@
                         <div class="policy-label">⚠️ 重要提示</div>
                         <div class="policy-text">
                             该学校不在我们的数据库中（共收录154所热门院校）。<br>
-                            <strong>已自动为您搜索该学校官网的语言要求政策。</strong>如果没有自动跳转，请点击下方按钮手动搜索。
+                            <strong>建议：</strong>点击下方搜索按钮，直接查看学校官网的语言要求政策。
                         </div>
                     </div>
                     <div class="custom-search-box">
